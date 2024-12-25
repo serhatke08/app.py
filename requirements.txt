@@ -1,4 +1,3 @@
-flask
+Flask
+pytube
 gunicorn
-flask-cors
-requests
