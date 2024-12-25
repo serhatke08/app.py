@@ -1,7 +1,7 @@
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS  # CORS import edilir
+import yt_dlp
 import os
-import requests
 
 app = Flask(__name__)
 CORS(app)  # CORS izinlerini ekliyoruz
@@ -15,16 +15,18 @@ def download_video():
 
     try:
         # YouTube video URL'sinden video dosyasını indirme işlemi
-        response = requests.get(video_url, stream=True)
-        if response.status_code == 200:
-            file_path = 'video.mp4'
-            with open(file_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=1024):
-                    if chunk:
-                        f.write(chunk)
-            return send_file(file_path, as_attachment=True, download_name='video.mp4')
-        else:
-            return jsonify({'error': 'Failed to download video. Please check the URL.'}), 400
+        ydl_opts = {
+            'format': 'best',  # En iyi formatı seçer
+            'outtmpl': 'video.mp4',  # İndirilen video 'video.mp4' olarak kaydedilir
+            'quiet': True,  # Logları gizler
+        }
+
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([video_url])
+
+        # Video indirildikten sonra dosyayı gönder
+        return send_file('video.mp4', as_attachment=True, download_name='video.mp4')
+
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
